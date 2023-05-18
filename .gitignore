@@ -1,0 +1,15 @@
+.idea/
+target/
+.bsp/
+env/
+build/
+project/target/
+minijava-target/
+.java/
+venv/
+
+# Mini Java files
+*.interp
+*.tokens
+src/main/java/antlr4/*.java
+
