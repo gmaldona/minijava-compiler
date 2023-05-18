@@ -14,15 +14,17 @@ public class AST {
       Statement statement();
    }
 
-   public interface Type           extends ASTNode {}
+   public interface Type            extends ASTNode {}
 
-   public interface Statement      extends ASTNode {}
+   public interface Statement       extends ASTNode {}
 
-   public interface Expression     extends ASTNode {}
+   public interface IExpression     extends ASTNode {}
 
-   public interface Expression2    extends ASTNode {}
+   public interface Expression  extends IExpression {}
 
-   public interface Declaration    extends ASTNode {}
+   public interface Expression2 extends IExpression {}
+
+   public interface Declaration     extends ASTNode {}
 
    public interface ExprBoolean extends Expression {
       Optional<Expression2> expr2();

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import minijava.lang.parser.AST.Scope;
 import minijava.lang.parser.AST.Identifier;
@@ -151,6 +152,12 @@ public class SymbolTable<S extends Scope> {
          }
       }
       return null;
+   }
+
+   public List<SymbolTable<?>> findChildren(String tableName) {
+      return childStream()
+         .filter((table) -> table.name().equals(tableName))
+         .collect(Collectors.toList());
    }
 
    private String getStringRepresentation(SymbolTable<?> symbolTable, StringBuilder stringBuilder) {

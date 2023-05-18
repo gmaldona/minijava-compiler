@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.swing.text.html.Option;
 import minijava.lang.parser.AST;
 import minijava.lang.parser.AST.ExprNumber;
 import minijava.lang.parser.AST.Type;
@@ -13,7 +15,9 @@ import minijava.lang.parser.AST.Int;
 import minijava.lang.parser.AST.ClassDecl;
 import minijava.lang.parser.AST.ASTNode;
 import minijava.lang.parser.AST.ExprBoolean;
+import minijava.lang.parser.AST.IExpression;
 import minijava.lang.parser.AST.Bool;
+import minijava.lang.parser.AST.MethodParam;
 import minijava.lang.parser.AST.ExprClassMember;
 import minijava.lang.parser.AST.ArrayLength;
 import minijava.lang.parser.AST.MethodDecl;
@@ -35,6 +39,7 @@ import minijava.lang.parser.AST.NewClassDecl;
 import minijava.lang.parser.AST.LessThan;
 import minijava.lang.parser.AST.ArrayAssignStatement;
 import minijava.lang.parser.AST.ExprId;
+import minijava.lang.parser.AST.ExprTrue;
 import minijava.lang.parser.AST.Declaration;
 import minijava.lang.parser.AST.StatementBlock;
 import minijava.lang.parser.AST.PrintStatement;
@@ -171,10 +176,20 @@ public class TypeChecker {
    }
 
    private static Type areCompatibleTypes(Class<? extends Type> type, Type otherType) {
-      if (otherType.getClass().getName().equals(type.toString())) {
-         throw new IllegalStateException("Types are not compatible: " + type + ", " + otherType);
+      if (otherType.getClass().equals(type)) {
+         throw new IllegalStateException("Types are not compatible: " + type.getName() + ", " + otherType);
       }
       return otherType;
+   }
+
+   private static boolean areMatchingMethodHeaders(List<MethodParam> methodParams, List<Type> otherMethodParams) {
+      List<Class<? extends Type>> methodParamsTypes = methodParams.stream()
+         .map(param -> param.type().getClass())
+         .collect(Collectors.toList());
+      List<Class<? extends Type>> otherMethodParamsType = otherMethodParams.stream()
+         .map(Type::getClass)
+         .collect(Collectors.toList());
+      return methodParamsTypes.equals(otherMethodParamsType);
    }
 
    private static Type areCompatibleTypes(Class<? extends Type> type, Type ... otherTypes) {
@@ -188,61 +203,68 @@ public class TypeChecker {
 
    private static Type evalExpression(SymbolTable<?> symbolTable, Expression expression) {
       return switch (expression) {
-         case ExprNumber   exprNumber         -> evalExprNumber(symbolTable, exprNumber);
-         case NewClassDecl newClassDecl       -> evalNewClassDecl(symbolTable, newClassDecl);
-         case ExprId       exprId             -> evalExprId(symbolTable, exprId);
-         case ExprThis     exprThis           -> evalExprThis(symbolTable, exprThis);
-         case ExprNot      exprNot            -> evalExprNot(symbolTable, exprNot);
+         case ExprNumber           exprNumber -> evalExprNumber(symbolTable, exprNumber);
+         case NewClassDecl       newClassDecl -> evalNewClassDecl(symbolTable, newClassDecl);
+         case ExprId                   exprId -> evalExprId(symbolTable, exprId);
+         case ExprThis               exprThis -> evalExprThis(symbolTable, exprThis);
+         case ExprNot                 exprNot -> evalExprNot(symbolTable, exprNot);
          case ExprParenthesis exprParenthesis -> evalExprParenthesis(symbolTable, exprParenthesis);
+         case ExprBoolean         exprBoolean -> evalExprBoolean(symbolTable, exprBoolean);
          default -> throw new IllegalStateException("Unexpected value: " + expression);
       };
    }
 
-   private static Type evalExpression2(SymbolTable<?> symbolTable, Expression2 expression2) {
+   private static Type evalExpression2(SymbolTable<?> symbolTable, IExpression expr, Expression2 expression2) {
       return switch (expression2) {
-         case ArrayLength     arrayLength -> evalArrayLength(symbolTable, arrayLength);
-         case ExprClassMember classMember -> evalExprClassMember(symbolTable, classMember);
-         case LessThan           lessThan -> evalLessThan(symbolTable, lessThan);
-         case ExprArray         exprArray -> evalExprArray(symbolTable, exprArray);
-         case Operation         operation -> evalOperation(symbolTable, operation);
+         case ArrayLength     arrayLength -> evalArrayLength(symbolTable, expr, arrayLength);
+         case ExprClassMember classMember -> evalExprClassMember(symbolTable, expr, classMember);
+         case LessThan           lessThan -> evalLessThan(symbolTable, expr, lessThan);
+         case ExprArray         exprArray -> evalExprArray(symbolTable, expr, exprArray);
+         case Operation         operation -> evalOperation(symbolTable, expr, operation);
          default -> throw new IllegalStateException("Unexpected value: " + expression2);
       };
    }
 
    private static Type evalNewClassDecl(SymbolTable<?> symbolTable, NewClassDecl newClassDecl) {
       return (newClassDecl.expr2().isPresent()) ?
-         evalExpression2(symbolTable, newClassDecl.expr2().get()) :
+         evalExpression2(symbolTable, newClassDecl, newClassDecl.expr2().get()) :
          new ClassType(newClassDecl.className());
    }
 
    private static Int evalExprNumber(SymbolTable<?> symbolTable, ExprNumber exprNumber) {
       return (exprNumber.expr2().isPresent()) ?
-         (Int) areCompatibleTypes(Int.class, evalExpression2(symbolTable, exprNumber.expr2().get())) :
+         (Int) areCompatibleTypes(Int.class, evalExpression2(symbolTable, exprNumber, exprNumber.expr2().get())) :
          new Int();
    }
 
    private static Bool evalExprBool(SymbolTable<?> symbolTable, ExprBoolean exprBoolean) {
       return (exprBoolean.expr2().isPresent()) ?
-         (Bool) areCompatibleTypes(Bool.class, evalExpression2(symbolTable, exprBoolean.expr2().get())) :
+         (Bool) areCompatibleTypes(Bool.class, evalExpression2(symbolTable, exprBoolean, exprBoolean.expr2().get())) :
          new Bool();
    }
 
-   private static Type evalOperation(SymbolTable<?> symbolTable, Operation operation) {
+   private static Type evalOperation(SymbolTable<?> symbolTable, IExpression expr, Operation operation) {
       return (operation.expr2().isPresent()) ?
-         areCompatibleTypes(evalExpression(symbolTable, operation.expr()), evalExpression2(symbolTable, operation.expr2().get())) :
+         areCompatibleTypes(evalExpression(symbolTable, operation.expr()), evalExpression2(symbolTable, operation, operation.expr2().get())) :
          evalExpression(symbolTable, operation.expr());
    }
 
-   private static Bool evalLessThan(SymbolTable<?> symbolTable, LessThan lessThan) {
+   private static Bool evalLessThan(SymbolTable<?> symbolTable, IExpression expr, LessThan lessThan) {
       return (lessThan.expr2().isPresent()) ?
-         (Bool) areCompatibleTypes(evalExpression(symbolTable, lessThan.expr()), evalExpression2(symbolTable, lessThan.expr2().get())) :
+         (Bool) areCompatibleTypes(evalExpression(symbolTable, lessThan.expr()), evalExpression2(symbolTable, lessThan, lessThan.expr2().get())) :
+         new Bool();
+   }
+
+   private static Bool evalExprBoolean(SymbolTable<?> symbolTable, ExprBoolean exprBoolean) {
+      return (exprBoolean.expr2().isPresent()) ?
+         (Bool) areCompatibleTypes(Bool.class, evalExpression2(symbolTable, exprBoolean, exprBoolean.expr2().get())) :
          new Bool();
    }
 
    private static Bool evalExprNot(SymbolTable<?> symbolTable, ExprNot exprNot) {
       return (exprNot.expr2().isPresent()) ?
-         (Bool) areCompatibleTypes(evalExpression(symbolTable, exprNot.expr()), evalExpression2(symbolTable, exprNot.expr2().get())) :
-         (Bool) evalExpression(symbolTable, exprNot.expr());
+         (Bool) areCompatibleTypes(evalExpression(symbolTable, exprNot.expr()), evalExpression2(symbolTable, exprNot, exprNot.expr2().get())) :
+         (Bool) areCompatibleTypes(Bool.class, evalExpression(symbolTable, exprNot.expr()));
    }
 
    private static Type evalExprId(SymbolTable<?> symbolTable, ExprId exprId) {
@@ -251,12 +273,12 @@ public class TypeChecker {
          .filter((entry) -> entry.identifier().equals(exprId.id()))
          .findFirst();
       return (exprId.expr2().isPresent()) ?
-         evalExpression2(symbolTable, exprId.expr2().get()) :
+         evalExpression2(symbolTable, exprId, exprId.expr2().get()) :
          tableEntry.get().type();
    }
 
    private static Type evalExprThis(SymbolTable<?> symbolTable, ExprThis exprThis) {
-      ClassType thisType = null;
+      ClassType thisType = new ClassType(new Identifier("fff"));
       Iterator<SymbolTable<?>> ancestorSymbolTableIterator = symbolTable.ancestorSymbolTableIterator();
       while (ancestorSymbolTableIterator.hasNext()) {
          SymbolTable<?> ancestorSymbolTable = ancestorSymbolTableIterator.next();
@@ -266,37 +288,56 @@ public class TypeChecker {
          }
       }
       return (exprThis.expr2().isPresent()) ?
-         evalExpression2(symbolTable, exprThis.expr2().get()) :
+         evalExpression2(symbolTable, exprThis, exprThis.expr2().get()) :
          thisType;
    }
 
-   private static Int evalArrayLength(SymbolTable<?> symbolTable, ArrayLength arrayLength) {
+   private static Int evalArrayLength(SymbolTable<?> symbolTable, IExpression expr, ArrayLength arrayLength) {
       return (arrayLength.expr2().isPresent()) ?
-         (Int) areCompatibleTypes(Int.class, evalExpression2(symbolTable, arrayLength.expr2().get())) :
+         (Int) areCompatibleTypes(Int.class, evalExpression2(symbolTable, arrayLength, arrayLength.expr2().get())) :
          new Int();
    }
 
    private static Type evalExprParenthesis(SymbolTable<?> symbolTable, ExprParenthesis exprParenthesis) {
       return (exprParenthesis.expr2().isPresent()) ?
-         areCompatibleTypes(evalExpression(symbolTable, exprParenthesis.expr()), evalExpression2(symbolTable, exprParenthesis.expr2().get())) :
+         areCompatibleTypes(evalExpression(symbolTable, exprParenthesis.expr()), evalExpression2(symbolTable, exprParenthesis, exprParenthesis.expr2().get())) :
          evalExpression(symbolTable, exprParenthesis.expr());
    }
 
-   //TODO: NOT CORRECT
-   private static Type evalExprClassMember(SymbolTable<?> symbolTable, ExprClassMember exprClassMember) {
-      return new ClassType(new Identifier("Null"));
+   private static Type evalExprClassMember(SymbolTable<?> symbolTable, IExpression expr, ExprClassMember exprClassMember) {
+      if (! (expr instanceof ExprId)) {
+         throw new IllegalStateException("Class Member not found.");
+      }
+      ExprId             exprId  = (ExprId) expr;
+      SymbolTable<?> classTable  = symbolTable.findFirstTableWithEntry(exprId.id(), ClassDecl.class);
+      List<SymbolTable<?>> memberTables = classTable.findChildren(exprClassMember.id().id());
+      if (memberTables.size() == 0) {
+         throw new IllegalStateException("Class member " + exprClassMember.id() + ", does not exist for class " + exprId.id());
+      }
+      List<Type> exprClassMemberParams = exprClassMember.memberParams().stream()
+         .map((param) -> evalExpression(symbolTable, param))
+         .collect(Collectors.toList());
+      Optional<SymbolTable<?>> classMemberSymbolTable = memberTables.stream()
+         .filter((table) -> areMatchingMethodHeaders(((MethodDecl) table.scope()).methodParams(), exprClassMemberParams))
+         .findFirst();
+      if (classMemberSymbolTable.isEmpty()) {
+         throw new IllegalStateException("Class Member with parameters " + exprClassMemberParams + " does not exist.");
+      }
+      return (exprClassMember.expr2().isPresent()) ?
+         evalExpression2(symbolTable, exprClassMember, exprClassMember.expr2().get()) :
+         ((MethodDecl) classMemberSymbolTable.get().scope()).methodType();
    }
 
    private static IntArray evalNewIntArrayDecl(SymbolTable<?> symbolTable, NewIntArrayDecl newIntArrayDecl) {
       return (newIntArrayDecl.expr2().isPresent()) ?
-         (IntArray) areCompatibleTypes(IntArray.class, evalExpression2(symbolTable, newIntArrayDecl.expr2().get())) :
+         (IntArray) areCompatibleTypes(IntArray.class, evalExpression2(symbolTable, newIntArrayDecl, newIntArrayDecl.expr2().get())) :
          new IntArray();
    }
 
-   private static Type evalExprArray(SymbolTable<?> symbolTable, ExprArray exprArray) {
+   private static Type evalExprArray(SymbolTable<?> symbolTable, IExpression expr, ExprArray exprArray) {
       if (exprArray.expr2().isPresent()) {
          areCompatibleTypes(Int.class, evalExpression(symbolTable, exprArray.expr()));
-         return evalExpression2(symbolTable, exprArray.expr2().get());
+         return evalExpression2(symbolTable, exprArray, exprArray.expr2().get());
       } else {
          areCompatibleTypes(Int.class, evalExpression(symbolTable, exprArray.expr()));
          return new IntArray();
