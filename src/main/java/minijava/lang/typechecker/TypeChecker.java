@@ -4,8 +4,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.swing.text.html.Option;
 import minijava.lang.parser.AST;
 import minijava.lang.parser.AST.ExprNumber;
 import minijava.lang.parser.AST.Type;
@@ -28,6 +28,7 @@ import minijava.lang.parser.AST.ExprParenthesis;
 import minijava.lang.parser.AST.NewIntArrayDecl;
 import minijava.lang.parser.AST.ClassType;
 import minijava.lang.parser.AST.ExprThis;
+import minijava.lang.parser.AST.ClassExpression;
 import minijava.lang.parser.AST.WhileLoop;
 import minijava.lang.parser.AST.Program;
 import minijava.lang.parser.AST.AssignStatement;
@@ -39,7 +40,6 @@ import minijava.lang.parser.AST.NewClassDecl;
 import minijava.lang.parser.AST.LessThan;
 import minijava.lang.parser.AST.ArrayAssignStatement;
 import minijava.lang.parser.AST.ExprId;
-import minijava.lang.parser.AST.ExprTrue;
 import minijava.lang.parser.AST.Declaration;
 import minijava.lang.parser.AST.StatementBlock;
 import minijava.lang.parser.AST.PrintStatement;
@@ -49,6 +49,14 @@ import minijava.lang.parser.SymbolTable.SymbolTableEntry;
 
 public class TypeChecker {
 
+   private static Logger LOG = Logger.getLogger(TypeChecker.class.getName());
+
+   /**
+    * Visits a {@link ASTNode} in the {@link AST} and checks if the node is valid {@code MiniJava} code.
+    *
+    * @param symbolTable The current {@link minijava.lang.parser.AST.Scope} of the {@link Program}.
+    * @param ast {@link ASTNode} within the {@link AST}
+    */
    public static void visitAndCheck(SymbolTable<?> symbolTable, ASTNode ast) {
       switch (ast) {
          case Program program                  -> programCheck(symbolTable, program);
@@ -65,6 +73,14 @@ public class TypeChecker {
       }
    }
 
+   /**
+    * Visits the {@link Program} node.
+    *
+    * (1) Checks if there are duplicated class names
+    *
+    * @param symbolTable The current {@link minijava.lang.parser.AST.Scope} of the {@link Program}.
+    * @param program {@link Program} within the {@link AST}
+    */
    private static void programCheck(SymbolTable<?> symbolTable, Program program) {
       List<String> uniqueClassDecl = program.classDecls().stream()
          .map(ClassDecl::className)
@@ -89,6 +105,9 @@ public class TypeChecker {
       visitAndCheck(mainClassTable, program.mainClass());
    }
 
+   /**
+    * Visits the {@link MainClass} node.
+    */
    private static void mainClassCheck(SymbolTable<?> symbolTable, MainClass mainClass) {
       visitAndCheck(symbolTable, mainClass.statement());
    }
@@ -112,7 +131,7 @@ public class TypeChecker {
       }
       classDecl.methodDecls()
          .forEach((methodDecl) -> {
-            Optional<SymbolTable<?>> methodDeclTable = symbolTable.childStream()
+            Optional<SymbolTable<?>> methodDeclTable = symbolTable.childTableStream()
                .filter((childTable) -> childTable.name().equals(methodDecl.methodName().id()))
                .findFirst();
             visitAndCheck(methodDeclTable.get(), methodDecl);
@@ -146,7 +165,13 @@ public class TypeChecker {
    }
 
    private static void arrayAssignStatementCheck(SymbolTable<?> symbolTable, ArrayAssignStatement arrayAssign) {
-      areCompatibleTypes(Int.class, evalExpression(symbolTable, arrayAssign.indexExpr()), evalExpression(symbolTable, arrayAssign.expr()));
+      if (! hasCompatibleTypes(Int.class, evalExpression(symbolTable, arrayAssign.indexExpr()))) {
+         throw new IllegalStateException("Index is not type " + new Int());
+      }
+      if (! hasCompatibleTypes(Int.class, evalExpression(symbolTable, arrayAssign.expr()))) {
+         LOG.warning(() -> "Found type: " + evalExpression(symbolTable, arrayAssign.expr()));
+         throw new IllegalStateException("Array assignment is not type " + new Int());
+      }
    }
 
    private static void printStatementCheck(SymbolTable<?> symbolTable, PrintStatement printStatement) {
@@ -168,18 +193,31 @@ public class TypeChecker {
 
    }
 
+   /**
+    * Check if two given {@link Type}s are compatible
+    * @return {@link Type} if they are equal
+    * @throws {@link IllegalStateException} if the types are not equal
+    */
    private static Type areCompatibleTypes(Type type, Type otherType) {
-       if (! type.getClass().getName().equals(otherType.getClass().getName())) {
+       if (! hasCompatibleTypes(type, otherType)) {
           throw new IllegalStateException("Types are not compatible: " + type + ", " + otherType);
        }
        return type;
    }
 
    private static Type areCompatibleTypes(Class<? extends Type> type, Type otherType) {
-      if (otherType.getClass().equals(type)) {
+      if (! hasCompatibleTypes(type, otherType)) {
          throw new IllegalStateException("Types are not compatible: " + type.getName() + ", " + otherType);
       }
       return otherType;
+   }
+
+   private static boolean hasCompatibleTypes(Type type, Type otherType) {
+      return type.getClass().equals(otherType.getClass());
+   }
+
+   private static boolean hasCompatibleTypes(Class<? extends Type> type, Type otherType) {
+      return type.equals(otherType.getClass());
    }
 
    private static boolean areMatchingMethodHeaders(List<MethodParam> methodParams, List<Type> otherMethodParams) {
@@ -201,7 +239,7 @@ public class TypeChecker {
       return otherTypes[0];
    }
 
-   private static Type evalExpression(SymbolTable<?> symbolTable, Expression expression) {
+   private static Type evalExpression(SymbolTable<?> symbolTable, IExpression expression) {
       return switch (expression) {
          case ExprNumber           exprNumber -> evalExprNumber(symbolTable, exprNumber);
          case NewClassDecl       newClassDecl -> evalNewClassDecl(symbolTable, newClassDecl);
@@ -268,9 +306,9 @@ public class TypeChecker {
    }
 
    private static Type evalExprId(SymbolTable<?> symbolTable, ExprId exprId) {
-      SymbolTable<?> ancestorTable = symbolTable.findFirstTableWithEntry(exprId.id(), Declaration.class);
+      SymbolTable<?> ancestorTable = symbolTable.findFirstTableWithEntry(exprId.className(), Declaration.class);
       Optional<SymbolTableEntry> tableEntry = ancestorTable.tableEntryStream()
-         .filter((entry) -> entry.identifier().equals(exprId.id()))
+         .filter((entry) -> entry.identifier().equals(exprId.className()))
          .findFirst();
       return (exprId.expr2().isPresent()) ?
          evalExpression2(symbolTable, exprId, exprId.expr2().get()) :
@@ -278,7 +316,7 @@ public class TypeChecker {
    }
 
    private static Type evalExprThis(SymbolTable<?> symbolTable, ExprThis exprThis) {
-      ClassType thisType = new ClassType(new Identifier("fff"));
+      ClassType thisType = new ClassType(null);
       Iterator<SymbolTable<?>> ancestorSymbolTableIterator = symbolTable.ancestorSymbolTableIterator();
       while (ancestorSymbolTableIterator.hasNext()) {
          SymbolTable<?> ancestorSymbolTable = ancestorSymbolTableIterator.next();
@@ -305,14 +343,32 @@ public class TypeChecker {
    }
 
    private static Type evalExprClassMember(SymbolTable<?> symbolTable, IExpression expr, ExprClassMember exprClassMember) {
-      if (! (expr instanceof ExprId)) {
-         throw new IllegalStateException("Class Member not found.");
+      Type type = areCompatibleTypes(ClassType.class, evalExpression(symbolTable, expr));
+      if (! (type instanceof ClassType exprId)) {
+         throw new IllegalStateException(type.getClass() + "was not type " + ClassType.class);
       }
-      ExprId             exprId  = (ExprId) expr;
-      SymbolTable<?> classTable  = symbolTable.findFirstTableWithEntry(exprId.id(), ClassDecl.class);
-      List<SymbolTable<?>> memberTables = classTable.findChildren(exprClassMember.id().id());
+//      SymbolTable<?> classTable = symbolTable.findFirstTableWithEntry()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      SymbolTable<?>         classTable = symbolTable.findFirstTableWithEntry(exprId.identifier(), VarDecl.class).parentTable();
+      List<SymbolTable<?>> memberTables = classTable.findChildrenTable(exprClassMember.id().id());
       if (memberTables.size() == 0) {
-         throw new IllegalStateException("Class member " + exprClassMember.id() + ", does not exist for class " + exprId.id());
+         throw new IllegalStateException("Class member " + exprClassMember.id() + ", does not exist for class " + exprId.identifier());
       }
       List<Type> exprClassMemberParams = exprClassMember.memberParams().stream()
          .map((param) -> evalExpression(symbolTable, param))

@@ -84,7 +84,7 @@ public class SymbolTableBuilder {
    public SymbolTableBuilder() {}
 
    public static <T extends Scope> NewTable<T> newTable(T scope) {
-      return new NewTable<T>(scope);
+      return new NewTable<>(scope);
    }
 
    private static class NewTable<T extends Scope> {

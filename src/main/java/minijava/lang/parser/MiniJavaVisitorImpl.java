@@ -1,9 +1,7 @@
 package minijava.lang.parser;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import antlr4.MiniJavaBaseVisitor;
 import antlr4.MiniJavaParser;
@@ -81,14 +79,14 @@ public class MiniJavaVisitorImpl extends MiniJavaBaseVisitor<ASTNode> {
 
    @Override
    public ASTNode visitClassDeclaration(ClassDeclarationContext ctx) {
-      Identifier           className = new Identifier(ctx.Identifier().get(0).getText());
-      Optional<Identifier> superClass = (ctx.Identifier().size() > 1) ?
+      Identifier             className = new Identifier(ctx.Identifier().get(0).getText());
+      Optional<Identifier>  superClass = (ctx.Identifier().size() > 1) ?
                Optional.of(new Identifier(ctx.Identifier().get(1).getText())) :
                Optional.empty();
-      List<VarDecl>        varDecls   = new ArrayList<>();
+      List<VarDecl>           varDecls = new ArrayList<>();
       ctx.varDeclaration()
-         .forEach( (varDecl) -> varDecls.add((VarDecl) visit(varDecl)) );
-      List<MethodDecl>     methodDecls   = new ArrayList<>();
+         .forEach((varDecl) -> varDecls.add((VarDecl) visit(varDecl)));
+      List<MethodDecl>     methodDecls = new ArrayList<>();
       ctx.methodDeclaration()
          .forEach( (methodDecl) -> methodDecls.add((MethodDecl) visit(methodDecl)) );
 

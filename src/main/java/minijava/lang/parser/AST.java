@@ -1,7 +1,6 @@
 package minijava.lang.parser;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class AST {
@@ -28,6 +27,10 @@ public class AST {
 
    public interface ExprBoolean extends Expression {
       Optional<Expression2> expr2();
+   }
+
+   public interface ClassExpression extends Expression {
+      Identifier className();
    }
 
    public interface Operation      extends Expression2 {
@@ -83,8 +86,8 @@ public class AST {
 
    public record ExprFalse(Optional<Expression2> expr2) implements ExprBoolean {}
 
-   public record  ExprId(Identifier            id,
-                         Optional<Expression2> expr2) implements Expression {}
+   public record  ExprId(Identifier className,
+                         Optional<Expression2> expr2) implements ClassExpression {}
 
    public record ExprThis(Optional<Expression2> expr2) implements Expression {}
 
@@ -95,7 +98,7 @@ public class AST {
                                  Optional<Expression2> expr2) implements Expression {}
 
    public record NewClassDecl(Identifier className,
-                              Optional<Expression2> expr2) implements Expression {}
+                              Optional<Expression2> expr2) implements ClassExpression {}
 
    public record ExprParenthesis(Expression                 expr,
                                  Optional<Expression2>      expr2) implements Expression {}

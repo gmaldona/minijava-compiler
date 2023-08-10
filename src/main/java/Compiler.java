@@ -7,7 +7,6 @@ import minijava.lang.parser.MiniJavaVisitorImpl;
 import minijava.lang.parser.Parser;
 import minijava.lang.parser.SymbolTable;
 import minijava.lang.parser.SymbolTableFactory;
-import minijava.lang.parser.SymbolTablePopulator;
 import minijava.lang.typechecker.TypeChecker;
 
 public class Compiler {

@@ -1,7 +1,7 @@
 package minijava.lang.parser;
 
-import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -17,7 +17,9 @@ import minijava.lang.parser.AST.MethodDecl;
 
 public class SymbolTable<S extends Scope> {
 
-   private Scope scope;
+   private final S scope;
+
+   private final Class<? extends Scope> scopeClass;
 
    private SymbolTable<?> parentTable;
 
@@ -26,12 +28,26 @@ public class SymbolTable<S extends Scope> {
    private final List<SymbolTable<?>> childrenTables = new ArrayList<>();
 
    public record SymbolTableEntry(Identifier identifier, Type type, ASTNode node) {
+      public String toString() {
+         return node.toString();
+      }
    }
 
-   protected SymbolTable() {}
+   protected SymbolTable() {
+      this(null, null);
+   }
 
    protected SymbolTable(S scope) {
+      this(scope, null);
+   }
+
+   protected SymbolTable(Class<S> scopeClass) {
+      this(null, scopeClass);
+   }
+
+   protected SymbolTable(S scope, Class<S> scopeClass) {
       this.scope = scope;
+      this.scopeClass = scopeClass;
    }
 
    public SymbolTable<?> AddTableEntry(SymbolTableEntry tableEntry) {
@@ -56,7 +72,7 @@ public class SymbolTable<S extends Scope> {
    }
 
    protected void addChildTable(final SymbolTable<?> childTable) {
-      if (childTable.scope != null) {
+      if (childTable.scopeClass != null) {
          childrenTables.add(childTable);
       }
    }
@@ -88,7 +104,7 @@ public class SymbolTable<S extends Scope> {
       return childrenTables;
    }
 
-   public Stream<SymbolTable<?>> childStream() {
+   public Stream<SymbolTable<?>> childTableStream() {
       return childrenTables.stream();
    }
 
@@ -108,16 +124,20 @@ public class SymbolTable<S extends Scope> {
       };
    }
 
-   public List<SymbolTable<?>> flattenTree() {
-      return flattenTree(
-         new ArrayList<>(Collections.singletonList(this)),
-         this
-      );
+   public SymbolTable<?> parentTable() {
+      return parentTable;
+   }
+
+   public SymbolTable<?> getRoot() {
+      if (parentTable == null) {
+         return this;
+      }
+      return parentTable.getRoot();
    }
 
    public SymbolTable<?> findFirstTableWithEntry(Identifier identifier, Class<? extends ASTNode> astNode) {
       Optional<SymbolTableEntry> tableEntry = tableEntryStream()
-         .filter((entry) -> entry.identifier().equals(identifier))
+         .filter((entry) -> entry.identifier().id().equals(identifier.id()))
          .filter((entry) -> astNode.isInstance(entry.node))
          .findFirst();
       if (tableEntry.isPresent()) {
@@ -129,20 +149,55 @@ public class SymbolTable<S extends Scope> {
       return parentTable.findFirstTableWithEntry(identifier, astNode);
    }
 
+   /**
+    * Finds all tables from Root with given {@link Scope}
+    * @param scope Filtered {@link Scope}
+    * @return {@link List} containing {@link SymbolTable} with given {@link Scope}
+    */
+   public List<SymbolTable<?>> findTablesWithScope(Class <? extends Scope> scope) {
+      return getRoot().flattenTree()
+         .stream()
+         .filter(table -> table.scopeClass.equals(scope))
+         .collect(Collectors.toList());
+   }
+
+   /**
+    * Takes the Tree like structure of the SymbolTables and flattens the tree into a List
+    * @return A List containing all descendant SymbolTables from Root
+    */
+   public List<SymbolTable<?>> flattenTree() {
+      return flattenTree(
+         new ArrayList<>(List.of(this)),
+         this
+      );
+   }
+
+   /**
+    *
+    * @param symbolTables List of child symbol tables
+    * @param currentTable Recursive step for current symbol table
+    * @return A List representation of SymbolTable Tree
+    */
    private List<SymbolTable<?>> flattenTree(List<SymbolTable<?>> symbolTables, SymbolTable<?> currentTable) {
-      currentTable.childStream()
+      currentTable.childTableStream()
          .forEach(symbolTables::add);
-      currentTable.childStream()
+      currentTable.childTableStream()
          .forEach((childTable) -> flattenTree(symbolTables, childTable));
       return symbolTables;
    }
 
+   /**
+    * @return An Empty SymbolTable
+    */
    public static SymbolTable<?> empty() {
       return new SymbolTable<>();
    }
 
-   public String getStringRepresentation() {
-      return getStringRepresentation(this, new StringBuilder());
+   /**
+    * @return An Empty SymbolTable with a {@link Scope}
+    */
+   public static SymbolTable<?> empty(Class<? extends Scope> scope) {
+      return new SymbolTable<>(scope);
    }
 
    public SymbolTable<?> findChild(ASTNode node) {
@@ -154,26 +209,9 @@ public class SymbolTable<S extends Scope> {
       return null;
    }
 
-   public List<SymbolTable<?>> findChildren(String tableName) {
-      return childStream()
+   public List<SymbolTable<?>> findChildrenTable(String tableName) {
+      return childTableStream()
          .filter((table) -> table.name().equals(tableName))
          .collect(Collectors.toList());
    }
-
-   private String getStringRepresentation(SymbolTable<?> symbolTable, StringBuilder stringBuilder) {
-      stringBuilder
-         .append(String.format("{#table -> %s}: ", symbolTable.name()));
-      if (symbolTable.childrenTables.size() == 0) {
-         return stringBuilder.toString();
-      }
-      symbolTable.childrenTables.forEach((table) ->
-         stringBuilder.append(String.format("{#table -> %s} ", table.name()))
-      );
-      stringBuilder.append(System.lineSeparator());
-      for (SymbolTable<?> childSymbolTable : symbolTable.childrenTables) {
-         getStringRepresentation(childSymbolTable, stringBuilder);
-      }
-      return stringBuilder.toString();
-   }
-
 }
