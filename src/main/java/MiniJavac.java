@@ -37,6 +37,7 @@ public class MiniJavac implements MiniJava {
    }
 
    protected MiniJavac setFlags(MiniJavac.Flags flag0, MiniJavac.Flags ... flagsN) {
+      List<MiniJavac.Flags> flags = new ArrayList<>();
       flags.add(flag0);
       flags.addAll(Arrays.asList(flagsN));
       return setFlags(flags);

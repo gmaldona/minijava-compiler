@@ -42,6 +42,13 @@ public class TestMiniJavac {
       List<MiniJavac.Flags> flags = compiler.getFlags();
 
       assertEquals(2, flags.size());
+
+      MiniJavac.getInstance()
+         .setFlags(MiniJavac.Flags.DEBUG,
+                   MiniJavac.Flags.DEBUG,
+                   MiniJavac.Flags.PARALLELIZED);
+
+      assertEquals(2, flags.size());
    }
 
    @Test
