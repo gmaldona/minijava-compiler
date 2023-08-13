@@ -10,9 +10,9 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "github-ci" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "github-ci" ]
 
 jobs:
   build:
@@ -21,14 +21,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up JDK 11
+    - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
         cache: maven
     - name: Install Antlr4 Tools
-      run: sudo apt-get update && sudo apt-get install python3
+      run: sudo apt-get update && sudo apt-get install python3 \
+        python3 -m pip install -r requirements
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
