@@ -3,6 +3,7 @@ package minijava.lang.typechecker;
 import java.util.Iterator;
 import java.util.Optional;
 import minijava.lang.parser.AST;
+import minijava.lang.parser.AST.ExprNot;
 import minijava.lang.parser.AST.Bool;
 import minijava.lang.parser.AST.ExprId;
 import minijava.lang.parser.AST.ExprBoolean;
@@ -11,6 +12,7 @@ import minijava.lang.parser.AST.Int;
 import minijava.lang.parser.AST.Type;
 import minijava.lang.parser.AST.ExprThis;
 import minijava.lang.parser.SymbolTable;
+import minijava.lang.parser.AST.NewClassDecl;
 import minijava.lang.parser.AST.ExprParenthesis;
 import minijava.lang.parser.AST.IntArray;
 import minijava.lang.parser.AST.NewIntArrayDecl;
@@ -62,6 +64,18 @@ public class ExpressionTypeChecker extends TypeChecker {
          new IntArray();
    }
 
+   protected static Type evalNewClassDecl(SymbolTable<?> symbolTable, NewClassDecl newClassDecl) {
+      return (newClassDecl.expr2().isPresent()) ?
+         evalExpression2(symbolTable, newClassDecl, newClassDecl.expr2().get()) :
+         new AST.ClassType(newClassDecl.className());
+   }
+
+   protected static Bool evalExprNot(SymbolTable<?> symbolTable, ExprNot exprNot) {
+      return (exprNot.expr2().isPresent()) ?
+         (Bool) areCompatibleTypes(evalExpression(symbolTable, exprNot.expr()), evalExpression2(symbolTable, exprNot, exprNot.expr2().get())) :
+         (Bool) areCompatibleTypes(Bool.class, evalExpression(symbolTable, exprNot.expr()));
+   }
+
    protected static Type evalExprParenthesis(SymbolTable<?> symbolTable, ExprParenthesis exprParenthesis) {
       return (exprParenthesis.expr2().isPresent()) ?
          areCompatibleTypes(
@@ -69,7 +83,4 @@ public class ExpressionTypeChecker extends TypeChecker {
          ) :
          evalExpression(symbolTable, exprParenthesis.expr());
    }
-
-
-
 }

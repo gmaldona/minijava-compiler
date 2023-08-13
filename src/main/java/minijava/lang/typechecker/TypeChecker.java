@@ -2,6 +2,7 @@ package minijava.lang.typechecker;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -15,7 +16,6 @@ import minijava.lang.parser.AST.ASTNode;
 import minijava.lang.parser.AST.ExprBoolean;
 import minijava.lang.parser.AST.IExpression;
 import minijava.lang.parser.AST.Bool;
-import minijava.lang.parser.AST.MethodParam;
 import minijava.lang.parser.AST.ExprClassMember;
 import minijava.lang.parser.AST.ArrayLength;
 import minijava.lang.parser.AST.MethodDecl;
@@ -250,30 +250,12 @@ public class TypeChecker {
       return otherTypes[0];
    }
 
-   private static Type evalNewClassDecl(SymbolTable<?> symbolTable, NewClassDecl newClassDecl) {
-      return (newClassDecl.expr2().isPresent()) ?
-         evalExpression2(symbolTable, newClassDecl, newClassDecl.expr2().get()) :
-         new ClassType(newClassDecl.className());
-   }
-
    private static Int evalExprNumber(SymbolTable<?> symbolTable, ExprNumber exprNumber) {
       return ExpressionTypeChecker.evalExprNumber(symbolTable, exprNumber);
    }
 
    private static Bool evalExprBool(SymbolTable<?> symbolTable, ExprBoolean exprBoolean) {
       return ExpressionTypeChecker.evalExprBool(symbolTable, exprBoolean);
-   }
-
-   private static Type evalOperation(SymbolTable<?> symbolTable, IExpression expr, Operation operation) {
-      return (operation.expr2().isPresent()) ?
-         areCompatibleTypes(evalExpression(symbolTable, operation.expr()), evalExpression2(symbolTable, operation, operation.expr2().get())) :
-         evalExpression(symbolTable, operation.expr());
-   }
-
-   private static Bool evalExprNot(SymbolTable<?> symbolTable, ExprNot exprNot) {
-      return (exprNot.expr2().isPresent()) ?
-         (Bool) areCompatibleTypes(evalExpression(symbolTable, exprNot.expr()), evalExpression2(symbolTable, exprNot, exprNot.expr2().get())) :
-         (Bool) areCompatibleTypes(Bool.class, evalExpression(symbolTable, exprNot.expr()));
    }
 
    private static Type evalExprId(SymbolTable<?> symbolTable, ExprId exprId) {
@@ -288,22 +270,31 @@ public class TypeChecker {
       return ExpressionTypeChecker.evalNewIntArrayDecl(symbolTable, newIntArrayDecl);
    }
 
-   private static Type evalExprParenthesis(SymbolTable<?> symbolTable, ExprParenthesis exprParenthesis) {
-      return ExpressionTypeChecker.evalExprParenthesis(symbolTable, exprParenthesis);
+   private static Type evalNewClassDecl(SymbolTable<?> symbolTable, NewClassDecl newClassDecl) {
+      return ExpressionTypeChecker.evalNewClassDecl(symbolTable, newClassDecl);
    }
 
-   private static Int evalArrayLength(SymbolTable<?> symbolTable, IExpression expr, ArrayLength arrayLength) {
-      return (arrayLength.expr2().isPresent()) ?
-         (Int) areCompatibleTypes(Int.class, evalExpression2(symbolTable, arrayLength, arrayLength.expr2().get())) :
-         new Int();
+   private static Bool evalExprNot(SymbolTable<?> symbolTable, ExprNot exprNot) {
+      return ExpressionTypeChecker.evalExprNot(symbolTable, exprNot);
+   }
+
+   private static Type evalExprParenthesis(SymbolTable<?> symbolTable, ExprParenthesis exprParenthesis) {
+      return ExpressionTypeChecker.evalExprParenthesis(symbolTable, exprParenthesis);
    }
 
    private static Type evalExprClassMember(SymbolTable<?> symbolTable, IExpression expr, ExprClassMember exprClassMember) {
       return Expression2TypeChecker.evalExprClassMember(symbolTable, expr, exprClassMember);
    }
 
+   private static Int evalArrayLength(SymbolTable<?> symbolTable, IExpression expr, ArrayLength arrayLength) {
+      return Expression2TypeChecker.evalArrayLength(symbolTable, expr, arrayLength);
+   }
+
    private static Type evalExprArray(SymbolTable<?> symbolTable, IExpression expr, ExprArray exprArray) {
        return Expression2TypeChecker.evalExprArray(symbolTable, expr, exprArray);
    }
 
+   private static Type evalOperation(SymbolTable<?> symbolTable, IExpression expr, Operation operation) {
+      return Expression2TypeChecker.evalExprOperation(symbolTable, expr, operation);
+   }
 }
