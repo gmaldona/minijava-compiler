@@ -11,6 +11,8 @@ import java.util.stream.Stream;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class TestMiniJavac {
 
    private static final Logger LOG = Logger.getLogger(TestMiniJavac.class.getName());
@@ -33,15 +35,28 @@ public class TestMiniJavac {
    }
 
    @Test
+   public void setFlags() {
+      MiniJavac compiler = MiniJavac.getInstance()
+         .setFlags(MiniJavac.Flags.DEBUG,
+                   MiniJavac.Flags.PARALLELIZED);
+      List<MiniJavac.Flags> flags = compiler.getFlags();
+
+      assertEquals(2, flags.size());
+   }
+
+   @Test
    @Ignore
    public void singleCoreMiniJavaExamples() {
-      MiniJavac.compile(MiniJavaExamples());
+      MiniJavac.getInstance()
+         .compile(MiniJavaExamples());
    }
 
    @Test
    @Ignore
    public void parallelizedMiniJavaExamples() throws InterruptedException {
-      MiniJavac. parallelizedCompile(MiniJavaExamples());
+      MiniJavac.getInstance()
+         .setFlags(MiniJavac.Flags.PARALLELIZED)
+         .compile(MiniJavaExamples());
    }
 
 }

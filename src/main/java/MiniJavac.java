@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -21,12 +22,49 @@ import minijava.lang.typechecker.TypeChecker;
 public class MiniJavac implements MiniJava {
 
    enum Flags {
-      PARALLELIZED
+      PARALLELIZED,
+      DEBUG
    }
 
    private static final Logger LOG = Logger.getLogger(MiniJavac.class.getName());
 
-   private MiniJavac() {}
+   private static MiniJavac compiler;
+
+   private List<MiniJavac.Flags> flags;
+
+   private MiniJavac() {
+      this.flags  = new ArrayList<>();
+   }
+
+   protected MiniJavac setFlags(MiniJavac.Flags flag0, MiniJavac.Flags ... flagsN) {
+      flags.add(flag0);
+      flags.addAll(Arrays.asList(flagsN));
+      return setFlags(flags);
+   }
+
+   protected MiniJavac setFlags(List<MiniJavac.Flags> flags) {
+      for (MiniJavac.Flags flag : flags) {
+         if (! this.flags.contains(flag)) {
+            this.flags.add(flag);
+         }
+      }
+      return this;
+   }
+
+   protected List<MiniJavac.Flags> getFlags() {
+      return flags;
+   }
+
+   protected static List<Flags> getFlagsFromArgs(List<String> args) {
+      List<String> definedFlags = Arrays.stream(Flags.values())
+         .map(Flags::name)
+         .map(String::toLowerCase)
+         .toList();
+      return args.stream()
+         .filter(definedFlags::contains)
+         .map(arg -> Flags.valueOf(arg.toUpperCase()))
+         .toList();
+   }
 
    protected static void compile(InputStream inputStream) {
       ProgramContext parseTree;
@@ -49,12 +87,12 @@ public class MiniJavac implements MiniJava {
       }
    }
 
-   protected static void compile(Stream<InputStream> inputStreams) {
+   protected void compile(Stream<InputStream> inputStreams) {
       inputStreams
          .forEach(MiniJavac::compile);
    }
 
-   protected static void parallelizedCompile(Stream<InputStream> inputStreamStream) throws InterruptedException {
+   protected void parallelizedCompile(Stream<InputStream> inputStreamStream) throws InterruptedException {
       List<Thread> compileThreads = inputStreamStream
          .map(inputStream -> new Thread(() -> compile(inputStream)))
          .toList();
@@ -76,11 +114,13 @@ public class MiniJavac implements MiniJava {
       System.out.println(MiniJava.HelloMiniJava());
 
       List<String> Args = Arrays.asList(args);
-      List<String> flags = Args.stream()
-         .filter(arg -> arg.startsWith("--") || arg.startsWith("-"))
+      List<MiniJavac.Flags> flags = getFlagsFromArgs(
+         Args.stream()
+            .filter(arg -> arg.startsWith("--") || arg.startsWith("-"))
             .map(arg -> arg.replace("-", ""))
             .map(String::toLowerCase)
-         .toList();
+            .toList()
+      );
 
       List<Path> filePaths  = Args.stream()
          .filter(arg -> arg.endsWith(MiniJava.JavaExt) || arg.endsWith(MiniJava.MiniJavaExt))
@@ -95,10 +135,21 @@ public class MiniJavac implements MiniJava {
          }
       }
 
-      if (flags.contains(Flags.PARALLELIZED.name().toLowerCase())) {
-         parallelizedCompile(inputStreams.stream());
+      if (flags.contains(Flags.PARALLELIZED)) {
+         MiniJavac.getInstance()
+            .setFlags(flags)
+            .parallelizedCompile(inputStreams.stream());
       } else {
-         compile(inputStreams.stream());
+         MiniJavac.getInstance()
+            .setFlags(flags)
+            .compile(inputStreams.stream());
       }
+   }
+
+   protected static MiniJavac getInstance() {
+      if (Objects.isNull(compiler)) {
+         compiler = new MiniJavac();
+      }
+      return compiler;
    }
 }
