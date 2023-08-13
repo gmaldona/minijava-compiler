@@ -28,13 +28,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Install Antlr4 Tools
-      run: sudo apt-get update && apt-get git -y \
-          && git clone https://github.com/antlr/antlr4.git \
-          && cd antlr4 \
-          && git checkout 4.12.0 \
-          && mvn clean --projects tool --also-make \
-          && mvn -DskipTests install --projects tool --also-make \
-          && mv ./tool/target/antlr4-*-complete.jar antlr4-tool.jar
+      run: sudo apt-get update && sudo apt-get install python3.8
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
