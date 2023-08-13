@@ -27,7 +27,7 @@ jobs:
     - name: Set up Antlr4 Tools
       run: pip install -r requirements.txt
     - name: Compile Antlr4 Grammar
-      run: cd scripts && ./compile_grammar.sh
+      run: antlr4 -v 4.12.0 -no-listener -visitor src/main/java/antlr4/MiniJava.g4
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
