@@ -1,8 +1,6 @@
 package minijava.lang.parser;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -41,11 +39,11 @@ public class SymbolTable<S extends Scope> {
       this(scope, null);
    }
 
-   protected SymbolTable(Class<S> scopeClass) {
+   protected SymbolTable(Class<? extends Scope> scopeClass) {
       this(null, scopeClass);
    }
 
-   protected SymbolTable(S scope, Class<S> scopeClass) {
+   protected SymbolTable(S scope, Class<? extends Scope> scopeClass) {
       this.scope = scope;
       this.scopeClass = scopeClass;
    }

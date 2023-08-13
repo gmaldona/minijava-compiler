@@ -1,5 +1,5 @@
 /**
- * CSC 444 - Compiler Design
+ * CSC 444 - MiniJVM Design
  * State University of New York, College at Oswego
  *
  * @author  Gregory Maldonado

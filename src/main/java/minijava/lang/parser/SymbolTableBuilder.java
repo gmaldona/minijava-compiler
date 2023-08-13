@@ -2,6 +2,7 @@ package minijava.lang.parser;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import minijava.lang.parser.AST.Scope;
 import minijava.lang.parser.AST.ASTNode;
@@ -15,6 +16,14 @@ import minijava.lang.parser.AST.Statement;
 
 public class SymbolTableBuilder {
 
+   private static final Logger LOG = Logger.getLogger(SymbolTableBuilder.class.getName());
+
+   /**
+    * Builds the Symbol Table by starting at the given {@link ASTNode} and recursively visiting all child nodes.
+    * The builder creates the Tree structure of the {@link AST} by giving pointers to each table.
+    * @param AST {@link ASTNode}
+    * @return The SymbolTable built for the given {@link ASTNode}
+    */
    public static SymbolTable<?> visitAndBuild(ASTNode AST) {
       return switch(AST) {
          case Program           program    -> programTable(program);
@@ -83,29 +92,29 @@ public class SymbolTableBuilder {
 
    public SymbolTableBuilder() {}
 
-   public static <T extends Scope> NewTable<T> newTable(T scope) {
+   public static <S extends Scope> NewTable<S> newTable(S scope) {
       return new NewTable<>(scope);
    }
 
-   private static class NewTable<T extends Scope> {
+   private static class NewTable<S extends Scope> {
 
-      private final SymbolTable<T> symbolTable;
+      private final SymbolTable<S> symbolTable;
 
-      protected NewTable(T scope) {
-         symbolTable = new SymbolTable<>(scope);
+      protected NewTable(S scope) {
+         symbolTable = new SymbolTable<>(scope, scope.getClass());
       }
 
-      protected NewTable<T> setParentTable(SymbolTable<?> parentTable) {
+      protected NewTable<S> setParentTable(SymbolTable<?> parentTable) {
          symbolTable.setParentTable(parentTable);
          return this;
       }
 
-      protected NewTable<T> setChildrenTables(List<SymbolTable<?>> childrenTables) {
+      protected NewTable<S> setChildrenTables(List<SymbolTable<?>> childrenTables) {
          symbolTable.setChildrenTables(childrenTables);
          return this;
       }
 
-      protected SymbolTable<T> build() {
+      protected SymbolTable<S> build() {
          return symbolTable;
       }
 

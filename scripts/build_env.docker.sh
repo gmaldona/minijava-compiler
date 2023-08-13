@@ -12,5 +12,5 @@
 root=$(git worktree list | cut -d " " -f1)
 
 pushd "$root/scripts"
-  docker build -t antlr/antlr4 --platform linux/amd64 .
+  docker build -t antlr/antlr4 --platform linux/amd64 $root
 popd
