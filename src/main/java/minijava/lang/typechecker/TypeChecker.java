@@ -56,15 +56,15 @@ public class TypeChecker {
 
    public static void visitAndCheck(SymbolTable<?> symbolTable, ASTNode ast) {
       switch (ast) {
-         case Program program                  -> programCheck(symbolTable, program);
-         case ClassDecl classDecl              -> classCheck(symbolTable, classDecl);
-         case MainClass mainClass              -> mainClassCheck(symbolTable, mainClass);
-         case MethodDecl methodDecl            -> methodCheck(symbolTable, methodDecl);
-         case IfStatement ifStatement          -> ifStatementBoolCheck(symbolTable, ifStatement);
-         case PrintStatement printStatement    -> printStatementCheck(symbolTable, printStatement);
-         case WhileLoop whileLoop              -> whileLoopBoolCheck(symbolTable, whileLoop);
-         case AssignStatement assignStatement  -> assignStatementCheck(symbolTable, assignStatement);
-         case StatementBlock statementBlock    -> statementBlockCheck(symbolTable, statementBlock);
+         case Program                  program -> programCheck(symbolTable, program);
+         case ClassDecl              classDecl -> classCheck(symbolTable, classDecl);
+         case MainClass              mainClass -> mainClassCheck(symbolTable, mainClass);
+         case WhileLoop              whileLoop -> whileLoopBoolCheck(symbolTable, whileLoop);
+         case MethodDecl            methodDecl -> methodCheck(symbolTable, methodDecl);
+         case IfStatement          ifStatement -> ifStatementBoolCheck(symbolTable, ifStatement);
+         case PrintStatement    printStatement -> printStatementCheck(symbolTable, printStatement);
+         case StatementBlock    statementBlock -> statementBlockCheck(symbolTable, statementBlock);
+         case AssignStatement  assignStatement -> assignStatementCheck(symbolTable, assignStatement);
          case ArrayAssignStatement arrayAssign -> arrayAssignStatementCheck(symbolTable, arrayAssign);
          case default -> throw new IllegalStateException("Unknown state for: " + ast);
       }
@@ -72,24 +72,24 @@ public class TypeChecker {
 
    protected static Type evalExpression(SymbolTable<?> symbolTable, IExpression expression) {
       return switch (expression) {
+         case ExprId                   exprId -> evalExprId(symbolTable, exprId);
+         case ExprNot                 exprNot -> evalExprNot(symbolTable, exprNot);
+         case ExprThis               exprThis -> evalExprThis(symbolTable, exprThis);
          case ExprNumber           exprNumber -> evalExprNumber(symbolTable, exprNumber);
          case ExprBoolean         exprBoolean -> evalExprBool(symbolTable, exprBoolean);
-         case ExprId                   exprId -> evalExprId(symbolTable, exprId);
-         case ExprThis               exprThis -> evalExprThis(symbolTable, exprThis);
-         case NewIntArrayDecl newIntArrayDecl -> evalNewIntArrayDecl(symbolTable, newIntArrayDecl);
          case NewClassDecl       newClassDecl -> evalNewClassDecl(symbolTable, newClassDecl);
-         case ExprNot                 exprNot -> evalExprNot(symbolTable, exprNot);
          case ExprParenthesis exprParenthesis -> evalExprParenthesis(symbolTable, exprParenthesis);
+         case NewIntArrayDecl newIntArrayDecl -> evalNewIntArrayDecl(symbolTable, newIntArrayDecl);
          default -> throw new IllegalStateException("Unexpected value: " + expression);
       };
    }
 
    protected static Type evalExpression2(SymbolTable<?> symbolTable, IExpression expr, Expression2 expression2) {
       return switch (expression2) {
-         case ExprClassMember classMember -> evalExprClassMember(symbolTable, expr, classMember);
-         case ArrayLength     arrayLength -> evalArrayLength(symbolTable, expr, arrayLength);
          case ExprArray         exprArray -> evalExprArray(symbolTable, expr, exprArray);
          case Operation         operation -> evalOperation(symbolTable, expr, operation);
+         case ArrayLength     arrayLength -> evalArrayLength(symbolTable, expr, arrayLength);
+         case ExprClassMember classMember -> evalExprClassMember(symbolTable, expr, classMember);
          default -> throw new IllegalStateException("Unexpected value: " + expression2);
       };
    }

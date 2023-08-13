@@ -8,11 +8,11 @@ public class TestSymbolTable {
 
    @Test
    public void flattenTree() {
-      SymbolTable<?> root = SymbolTable.empty();
+      SymbolTable<?> root = SymbolTable.empty(AST.Program.class);
       for (int i = 0; i < 3; i++) {
-         SymbolTable<?> child = SymbolTable.empty();
+         SymbolTable<?> child = SymbolTable.empty(AST.ClassDecl.class);
          root.addChildTable(child);
-         child.addChildTable(SymbolTable.empty());
+         child.addChildTable(SymbolTable.empty(AST.MethodDecl.class));
       }
       List<SymbolTable<?>> flattenList = root.flattenTree();
 
