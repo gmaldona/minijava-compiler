@@ -21,11 +21,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    -name: Set up Antlr4 Tools
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-          cache: 'pip'
+    - name: Set up Antlr4 Tools
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        cache: 'pip'
     - run: pip install -r requirements.txt
     - name: Set up JDK 17
       uses: actions/setup-java@v3
