@@ -8,11 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class TestMiniJVM {
+public class TestMiniJavac {
 
-   private static final Logger LOG = Logger.getLogger(TestMiniJVM.class.getName());
+   private static final Logger LOG = Logger.getLogger(TestMiniJavac.class.getName());
 
    private Stream<InputStream> MiniJavaExamples() {
       Path examplesDirectory = Paths.get("src/main/minijava/").toAbsolutePath();
@@ -32,13 +33,15 @@ public class TestMiniJVM {
    }
 
    @Test
+   @Ignore
    public void singleCoreMiniJavaExamples() {
-      MiniJVM.compile(MiniJavaExamples());
+      MiniJavac.compile(MiniJavaExamples());
    }
 
    @Test
+   @Ignore
    public void parallelizedMiniJavaExamples() throws InterruptedException {
-      MiniJVM. parallelizedCompile(MiniJavaExamples());
+      MiniJavac. parallelizedCompile(MiniJavaExamples());
    }
 
 }

@@ -18,15 +18,15 @@ import minijava.lang.parser.SymbolTable;
 import minijava.lang.parser.SymbolTableFactory;
 import minijava.lang.typechecker.TypeChecker;
 
-public class MiniJVM implements MiniJava {
+public class MiniJavac implements MiniJava {
 
    enum Flags {
       PARALLELIZED
    }
 
-   private static final Logger LOG = Logger.getLogger(MiniJVM.class.getName());
+   private static final Logger LOG = Logger.getLogger(MiniJavac.class.getName());
 
-   private MiniJVM() {}
+   private MiniJavac() {}
 
    protected static void compile(InputStream inputStream) {
       ProgramContext parseTree;
@@ -51,7 +51,7 @@ public class MiniJVM implements MiniJava {
 
    protected static void compile(Stream<InputStream> inputStreams) {
       inputStreams
-         .forEach(MiniJVM::compile);
+         .forEach(MiniJavac::compile);
    }
 
    protected static void parallelizedCompile(Stream<InputStream> inputStreamStream) throws InterruptedException {
