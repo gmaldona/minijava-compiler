@@ -18,7 +18,7 @@ import minijava.lang.parser.SymbolTable;
 import minijava.lang.parser.SymbolTableFactory;
 import minijava.lang.typechecker.TypeChecker;
 
-public class MiniJVM {
+public class MiniJVM implements MiniJava {
 
    enum Flags {
       PARALLELIZED
@@ -67,7 +67,15 @@ public class MiniJVM {
    }
 
    public static void main(String[] args) throws Exception {
-      List<String> Args = Arrays.asList(Arrays.copyOfRange(args,1, args.length));
+      if (args.length == 0) {
+         LOG.warning(() -> "No MiniJava Files to compile.");
+         System.out.println("No MiniJava Files was provided.");
+         return;
+      }
+
+      System.out.println(MiniJava.HelloMiniJava());
+
+      List<String> Args = Arrays.asList(args);
       List<String> flags = Args.stream()
          .filter(arg -> arg.startsWith("--") || arg.startsWith("-"))
             .map(arg -> arg.replace("-", ""))
@@ -75,7 +83,7 @@ public class MiniJVM {
          .toList();
 
       List<Path> filePaths  = Args.stream()
-         .filter(arg -> arg.endsWith(".java") || arg.endsWith(".minijava"))
+         .filter(arg -> arg.endsWith(MiniJava.JavaExt) || arg.endsWith(MiniJava.MiniJavaExt))
             .map(Paths::get)
          .filter(Files::exists)
          .toList();

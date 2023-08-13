@@ -30,6 +30,7 @@
                     <source>17</source>
                     <target>17</target>
                     <fork>true</fork>
+                    <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
         </plugins>
