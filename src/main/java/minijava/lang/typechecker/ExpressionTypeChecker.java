@@ -2,7 +2,10 @@ package minijava.lang.typechecker;
 
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.logging.Logger;
 import minijava.lang.parser.AST;
+import minijava.lang.parser.AST.ClassDecl;
+import minijava.lang.parser.AST.ClassType;
 import minijava.lang.parser.AST.ExprNot;
 import minijava.lang.parser.AST.Bool;
 import minijava.lang.parser.AST.ExprId;
@@ -19,6 +22,8 @@ import minijava.lang.parser.AST.NewIntArrayDecl;
 
 public class ExpressionTypeChecker extends TypeChecker {
 
+   private static final Logger LOG = Logger.getLogger(ExpressionTypeChecker.class.getName());
+
    private ExpressionTypeChecker() {}
 
    protected static Int evalExprNumber(SymbolTable<?> symbolTable, ExprNumber exprNumber) {
@@ -34,9 +39,9 @@ public class ExpressionTypeChecker extends TypeChecker {
    }
 
    protected static Type evalExprId(SymbolTable<?> symbolTable, ExprId exprId) {
-      SymbolTable<?> ancestorTable = symbolTable.findFirstTableWithEntry(exprId.className(), AST.Declaration.class);
+      SymbolTable<?> ancestorTable = symbolTable.findFirstTableWithEntry(exprId.identifier(), AST.Declaration.class);
       Optional<SymbolTable.SymbolTableEntry> tableEntry = ancestorTable.tableEntryStream()
-         .filter((entry) -> entry.identifier().equals(exprId.className()))
+         .filter((entry) -> entry.identifier().equals(exprId.identifier()))
          .findFirst();
       return (exprId.expr2().isPresent()) ?
          evalExpression2(symbolTable, exprId, exprId.expr2().get()) :
@@ -44,18 +49,22 @@ public class ExpressionTypeChecker extends TypeChecker {
    }
 
    protected static Type evalExprThis(SymbolTable<?> symbolTable, ExprThis exprThis) {
-      AST.ClassType thisType = new AST.ClassType(null);
+      ClassType thisType = new ClassType(null);
       Iterator<SymbolTable<?>> ancestorSymbolTableIterator = symbolTable.ancestorSymbolTableIterator();
       while (ancestorSymbolTableIterator.hasNext()) {
          SymbolTable<?> ancestorSymbolTable = ancestorSymbolTableIterator.next();
-         if (ancestorSymbolTable.scope() instanceof AST.ClassDecl) {
-            thisType = new AST.ClassType(((AST.ClassDecl) ancestorSymbolTable.scope()).className());
+         if (ancestorSymbolTable.scope() instanceof ClassDecl) {
+            thisType = new ClassType(((ClassDecl) ancestorSymbolTable.scope()).className());
             break;
          }
       }
-      return (exprThis.expr2().isPresent()) ?
+      var temp = (exprThis.expr2().isPresent()) ?
          evalExpression2(symbolTable, exprThis, exprThis.expr2().get()) :
          thisType;
+
+      LOG.warning(() -> "EvalExprThis: " + temp);
+
+      return temp;
    }
 
    protected static IntArray evalNewIntArrayDecl(SymbolTable<?> symbolTable, NewIntArrayDecl newIntArrayDecl) {
@@ -67,7 +76,7 @@ public class ExpressionTypeChecker extends TypeChecker {
    protected static Type evalNewClassDecl(SymbolTable<?> symbolTable, NewClassDecl newClassDecl) {
       return (newClassDecl.expr2().isPresent()) ?
          evalExpression2(symbolTable, newClassDecl, newClassDecl.expr2().get()) :
-         new AST.ClassType(newClassDecl.className());
+         new AST.ClassType(newClassDecl.identifier());
    }
 
    protected static Bool evalExprNot(SymbolTable<?> symbolTable, ExprNot exprNot) {

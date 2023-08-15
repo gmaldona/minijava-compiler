@@ -106,6 +106,11 @@ public class SymbolTable<S extends Scope> {
       return childrenTables.stream();
    }
 
+   public Stream<SymbolTable<?>> childTableStream(Class<? extends Scope> scope) {
+      return childrenTables.stream()
+         .filter(table -> scope.equals(table.scopeClass));
+   }
+
    public Stream<SymbolTableEntry> tableEntryStream() {
       return tableEntries.stream();
    }

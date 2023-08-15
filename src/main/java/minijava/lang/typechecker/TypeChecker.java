@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import minijava.lang.parser.AST;
 import minijava.lang.parser.AST.ExprNumber;
 import minijava.lang.parser.AST.Type;
@@ -24,7 +23,6 @@ import minijava.lang.parser.AST.IntArray;
 import minijava.lang.parser.AST.IfStatement;
 import minijava.lang.parser.AST.ExprParenthesis;
 import minijava.lang.parser.AST.NewIntArrayDecl;
-import minijava.lang.parser.AST.ClassType;
 import minijava.lang.parser.AST.ExprThis;
 import minijava.lang.parser.AST.WhileLoop;
 import minijava.lang.parser.AST.Program;
@@ -200,6 +198,7 @@ public class TypeChecker {
    }
 
    private static void ifStatementBoolCheck(SymbolTable<?> symbolTable, IfStatement ifStatement) {
+      LOG.warning(() -> evalExpression(symbolTable, ifStatement.expr()).toString());
       areCompatibleTypes(Bool.class, evalExpression(symbolTable, ifStatement.expr()));
       visitAndCheck(symbolTable, ifStatement.statement());
       visitAndCheck(symbolTable, ifStatement.elseStatement());

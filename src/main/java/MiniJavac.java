@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import antlr4.MiniJavaParser.ProgramContext;
 import antlr4.MiniJavaVisitor;
@@ -33,7 +34,7 @@ public class MiniJavac implements MiniJava {
    private List<MiniJavac.Flags> flags;
 
    private MiniJavac() {
-      this.flags  = new ArrayList<>();
+      this.flags = new ArrayList<>();
    }
 
    protected MiniJavac setFlags(MiniJavac.Flags flag0, MiniJavac.Flags ... flagsN) {
@@ -81,11 +82,35 @@ public class MiniJavac implements MiniJava {
             .build();
 
          TypeChecker.visitAndCheck(symbolTable, ast);
+
       } catch (IOException e) {
          LOG.warning(() -> "Could not load input stream.");
+         e.printStackTrace();
       } catch (Exception e) {
          LOG.log(Level.WARNING, "[{0}] Could not compile. {1}", new Object[]{inputStream.toString(), e.getMessage()});
+         e.printStackTrace();
+      } finally {
+         try {
+            inputStream.close();
+         } catch (IOException e) {
+            LOG.warning(() -> e.getCause() + ": Could not close input stream.");
+         }
       }
+   }
+
+   protected void compile(List<Path> paths) {
+      Stream<InputStream> inputStreams = paths.stream()
+         .filter(Files::exists)
+         .map(path -> {
+            try {
+               return Files.newInputStream(path);
+            } catch (IOException ignored) {
+               return null;
+            }
+         })
+         .filter(Objects::nonNull);
+
+      compile(inputStreams);
    }
 
    protected void compile(Stream<InputStream> inputStreams) {
@@ -123,7 +148,7 @@ public class MiniJavac implements MiniJava {
             .toList()
       );
 
-      List<Path> filePaths  = Args.stream()
+      List<Path> filePaths = Args.stream()
          .filter(arg -> arg.endsWith(MiniJava.JavaExt) || arg.endsWith(MiniJava.MiniJavaExt))
             .map(Paths::get)
          .filter(Files::exists)
@@ -131,9 +156,8 @@ public class MiniJavac implements MiniJava {
       List<InputStream> inputStreams = new ArrayList<>();
 
       for (Path filePath : filePaths) {
-         try(InputStream inputStream = Files.newInputStream(filePath)) {
-            inputStreams.add(inputStream);
-         }
+         InputStream inputStream = Files.newInputStream(filePath);
+         inputStreams.add(inputStream);
       }
 
       if (flags.contains(Flags.PARALLELIZED)) {

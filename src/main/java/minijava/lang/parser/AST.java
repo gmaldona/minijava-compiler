@@ -29,8 +29,24 @@ public class AST {
       Optional<Expression2> expr2();
    }
 
-   public interface ClassExpression extends Expression {
-      Identifier className();
+   public abstract static class ClassExpression implements Expression {
+
+      private Optional<Expression2> expr2;
+
+      public ClassExpression(Optional<Expression2> expr2) {
+         this.expr2 = expr2;
+      }
+
+      abstract Identifier identifier();
+
+      public Optional<Expression2> expr2() {
+         return expr2;
+      }
+
+      public Optional<Expression2> expr2(Optional<Expression2> expr2) {
+         this.expr2 = expr2;
+         return this.expr2;
+      }
    }
 
    public interface Operation      extends Expression2 {
@@ -86,10 +102,31 @@ public class AST {
 
    public record ExprFalse(Optional<Expression2> expr2) implements ExprBoolean {}
 
-   public record  ExprId(Identifier className,
-                         Optional<Expression2> expr2) implements ClassExpression {}
+   public static class ExprId extends ClassExpression {
+      private final Identifier className;
 
-   public record ExprThis(Optional<Expression2> expr2) implements Expression {}
+      public ExprId(Identifier className, Optional<Expression2> expr2) {
+         super(expr2);
+         this.className = className;
+      }
+
+      @Override
+      public Identifier identifier() {
+         return className;
+      }
+   }
+
+   public static class ExprThis extends ClassExpression implements IExpression {
+
+      public ExprThis(Optional<Expression2> expr2) {
+         super(expr2);
+      }
+
+      @Override
+      Identifier identifier() {
+         return null;
+      }
+   }
 
    public record  ExprNot(Expression expr,
                           Optional<Expression2> expr2) implements Expression {}
@@ -97,15 +134,46 @@ public class AST {
    public record NewIntArrayDecl(Expression            expr,
                                  Optional<Expression2> expr2) implements Expression {}
 
-   public record NewClassDecl(Identifier className,
-                              Optional<Expression2> expr2) implements ClassExpression {}
+   public static class NewClassDecl extends ClassExpression {
+
+      private final Identifier className;
+
+      public NewClassDecl(Identifier className, Optional<Expression2> expr2) {
+         super(expr2);
+         this.className = className;
+      }
+
+      @Override
+      public Identifier identifier() {
+         return className;
+      }
+   }
 
    public record ExprParenthesis(Expression                 expr,
                                  Optional<Expression2>      expr2) implements Expression {}
 
-   public record ExprClassMember(Identifier                 id,
-                                 List<Expression>           memberParams,
-                                 Optional<Expression2>      expr2) implements Expression2 {}
+   public static class ExprClassMember extends ClassExpression implements Expression2 {
+
+      private final Identifier identifier;
+      private final List<Expression> memberParams;
+
+      public ExprClassMember(Identifier identifier,
+                             List<Expression> memberParams,
+                             Optional<Expression2> expr2) {
+         super(expr2);
+         this.identifier = identifier;
+         this.memberParams = memberParams;
+      }
+
+      @Override
+      public Identifier identifier() {
+         return identifier;
+      }
+
+      public List<Expression> memberParams() {
+         return memberParams;
+      }
+   }
 
    public record ExprArray(Expression            expr,
                            Optional<Expression2> expr2) implements Expression2 {}

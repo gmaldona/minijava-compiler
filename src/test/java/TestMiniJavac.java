@@ -35,6 +35,28 @@ public class TestMiniJavac {
    }
 
    @Test
+   @Ignore("Run manually")
+   public void handPickJavaExamples() {
+      enum JavaExamples {
+         BinarySearch(Paths.get("src/main/minijava/BinarySearch.java")),
+         Testing(Paths.get("src/main/minijava/testing.java"))
+         ;
+         private final Path path;
+         JavaExamples(Path path) {
+            this.path = path;
+         }
+
+         public Path toPath() {
+            return path;
+         }
+      }
+
+      MiniJavac.getInstance().
+         compile(List.of(JavaExamples.BinarySearch.toPath()));
+
+   }
+
+   @Test
    public void setFlags() {
       MiniJavac compiler = MiniJavac.getInstance()
          .setFlags(MiniJavac.Flags.DEBUG,
