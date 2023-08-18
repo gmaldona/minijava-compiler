@@ -1,3 +1,5 @@
+package minijava.lang;
+
 public interface MiniJava {
 
    String MiniJavaExt = ".minijava";

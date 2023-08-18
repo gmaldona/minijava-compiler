@@ -1,3 +1,5 @@
+package edu.oswego.cs.gmaldona;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;

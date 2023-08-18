@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# compile_grammar.sh -
+# compile_grammar.python.sh -
 #
 # Using the installed Antlr4 Tools, Auto-generated Java classes will be created from the grammar.
 # This script is assuming that the grammar lives in $ROOT/src/main/java/antlr4 and will auto-generate

@@ -46,7 +46,7 @@ public class TypeChecker {
    protected TypeChecker() {}
 
    /**
-    * Visits a {@link ASTNode} in the {@link AST} and checks if the node is valid {@code MiniJava} code.
+    * Visits a {@link ASTNode} in the {@link AST} and checks if the node is valid {@code minijava.lang.MiniJava} code.
     *
     * @param symbolTable The current {@link minijava.lang.parser.AST.Scope} of the {@link Program}.
     * @param ast {@link ASTNode} within the {@link AST}

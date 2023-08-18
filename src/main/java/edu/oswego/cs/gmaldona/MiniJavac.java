@@ -1,3 +1,5 @@
+package edu.oswego.cs.gmaldona;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -9,10 +11,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import antlr4.MiniJavaParser.ProgramContext;
 import antlr4.MiniJavaVisitor;
+import minijava.lang.MiniJava;
 import minijava.lang.parser.AST.ASTNode;
 import minijava.lang.parser.MiniJavaVisitorImpl;
 import minijava.lang.parser.Parser;
@@ -156,6 +158,7 @@ public class MiniJavac implements MiniJava {
       List<InputStream> inputStreams = new ArrayList<>();
 
       for (Path filePath : filePaths) {
+         LOG.info(() -> "Found path: " + filePath);
          InputStream inputStream = Files.newInputStream(filePath);
          inputStreams.add(inputStream);
       }

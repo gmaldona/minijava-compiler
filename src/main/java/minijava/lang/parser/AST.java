@@ -87,7 +87,7 @@ public class AST {
    public record WhileLoop(Expression expr,
                            Statement  statement) implements StatementScope {}
 
-   public record  PrintStatement(Expression expr) implements Statement {}
+   public record PrintStatement(Expression expr) implements Statement {}
 
    public record AssignStatement(Identifier varName,
                                  Expression expr) implements Statement {}

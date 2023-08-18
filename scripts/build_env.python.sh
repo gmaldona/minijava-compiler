@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# build_venv.sh -
+# build_env.python.sh -
 #
 # Installing the Antlr4 Tool Kit using pip install.
 # # Antlr4 Tool Kit Auto-generates Java classes from *.g4 grammar file to be used within the Compiler

@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import minijava.lang.parser.AST.Expression2;
 import minijava.lang.parser.AST.ClassExpression;
-import minijava.lang.parser.AST.ClassType;
 import minijava.lang.parser.AST.ClassDecl;
 import minijava.lang.parser.AST.Operation;
 import minijava.lang.parser.AST.ArrayLength;
@@ -77,7 +76,7 @@ public class Expression2TypeChecker extends TypeChecker {
       IntermediateHelper helper = new IntermediateHelper();
       Type type = helper.deepCopy((ClassExpression) expr, () -> evalExpression(symbolTable, expr));
       // get root table and check all ClassDecl Tables if classMember exists
-      SymbolTable<?> rootTable       = symbolTable.getRoot();
+      SymbolTable<?> rootTable = symbolTable.getRoot();
       Stream<SymbolTable<?>> classDeclTables = rootTable.childTableStream(ClassDecl.class);
 
       return type;
