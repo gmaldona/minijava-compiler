@@ -28,13 +28,13 @@ public class ExpressionTypeChecker extends TypeChecker {
 
    protected static Int evalExprNumber(SymbolTable<?> symbolTable, ExprNumber exprNumber) {
       return (exprNumber.expr2().isPresent()) ?
-         (Int) areCompatibleTypes(Int.class, evalExpression2(symbolTable, exprNumber, exprNumber.expr2().get())) :
+         (Int) Types.areCompatibleTypes(Int.class, evalExpression2(symbolTable, exprNumber, exprNumber.expr2().get())) :
          new Int();
    }
 
    protected static Bool evalExprBool(SymbolTable<?> symbolTable, ExprBoolean exprBoolean) {
       return (exprBoolean.expr2().isPresent()) ?
-         (Bool) areCompatibleTypes(Bool.class, evalExpression2(symbolTable, exprBoolean, exprBoolean.expr2().get())) :
+         (Bool) Types.areCompatibleTypes(Bool.class, evalExpression2(symbolTable, exprBoolean, exprBoolean.expr2().get())) :
          new Bool();
    }
 
@@ -69,7 +69,7 @@ public class ExpressionTypeChecker extends TypeChecker {
 
    protected static IntArray evalNewIntArrayDecl(SymbolTable<?> symbolTable, NewIntArrayDecl newIntArrayDecl) {
       return (newIntArrayDecl.expr2().isPresent()) ?
-         (IntArray) areCompatibleTypes(IntArray.class, evalExpression2(symbolTable, newIntArrayDecl, newIntArrayDecl.expr2().get())) :
+         (IntArray) Types.areCompatibleTypes(IntArray.class, evalExpression2(symbolTable, newIntArrayDecl, newIntArrayDecl.expr2().get())) :
          new IntArray();
    }
 
@@ -81,13 +81,13 @@ public class ExpressionTypeChecker extends TypeChecker {
 
    protected static Bool evalExprNot(SymbolTable<?> symbolTable, ExprNot exprNot) {
       return (exprNot.expr2().isPresent()) ?
-         (Bool) areCompatibleTypes(evalExpression(symbolTable, exprNot.expr()), evalExpression2(symbolTable, exprNot, exprNot.expr2().get())) :
-         (Bool) areCompatibleTypes(Bool.class, evalExpression(symbolTable, exprNot.expr()));
+         (Bool) Types.areCompatibleTypes(evalExpression(symbolTable, exprNot.expr()), evalExpression2(symbolTable, exprNot, exprNot.expr2().get())) :
+         (Bool) Types.areCompatibleTypes(Bool.class, evalExpression(symbolTable, exprNot.expr()));
    }
 
    protected static Type evalExprParenthesis(SymbolTable<?> symbolTable, ExprParenthesis exprParenthesis) {
       return (exprParenthesis.expr2().isPresent()) ?
-         areCompatibleTypes(
+         Types.areCompatibleTypes(
             evalExpression(symbolTable, exprParenthesis.expr()), evalExpression2(symbolTable, exprParenthesis, exprParenthesis.expr2().get())
          ) :
          evalExpression(symbolTable, exprParenthesis.expr());

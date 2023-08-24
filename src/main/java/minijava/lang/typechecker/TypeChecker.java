@@ -2,7 +2,6 @@ package minijava.lang.typechecker;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 import minijava.lang.parser.AST;
@@ -43,7 +42,7 @@ public class TypeChecker {
 
    private static Logger LOG = Logger.getLogger(TypeChecker.class.getName());
 
-   protected TypeChecker() {}
+   public TypeChecker() {}
 
    /**
     * Visits a {@link ASTNode} in the {@link AST} and checks if the node is valid {@code minijava.lang.MiniJava} code.
@@ -166,7 +165,7 @@ public class TypeChecker {
       if (uniqueVarDecl.size() != methodDecl.varDecls().size()) {
          throw new IllegalStateException("Duplicate variables.");
       }
-      areCompatibleTypes(methodDecl.methodType(), evalExpression(symbolTable, methodDecl.returnExpr()));
+      Types.areCompatibleTypes(methodDecl.methodType(), evalExpression(symbolTable, methodDecl.returnExpr()));
       List<String> parameters = methodDecl.methodParams().stream()
          .map(AST.MethodParam::name)
          .map(Identifier::id)
@@ -184,10 +183,10 @@ public class TypeChecker {
    }
 
    private static void arrayAssignStatementCheck(SymbolTable<?> symbolTable, ArrayAssignStatement arrayAssign) {
-      if (! hasCompatibleTypes(Int.class, evalExpression(symbolTable, arrayAssign.indexExpr()))) {
+      if (! Types.hasCompatibleTypes(Int.class, evalExpression(symbolTable, arrayAssign.indexExpr()))) {
          throw new IllegalStateException("Index is not type " + new Int());
       }
-      if (! hasCompatibleTypes(Int.class, evalExpression(symbolTable, arrayAssign.expr()))) {
+      if (! Types.hasCompatibleTypes(Int.class, evalExpression(symbolTable, arrayAssign.expr()))) {
          LOG.warning(() -> "Found type: " + evalExpression(symbolTable, arrayAssign.expr()));
          throw new IllegalStateException("Array assignment is not type " + new Int());
       }
@@ -199,54 +198,18 @@ public class TypeChecker {
 
    private static void ifStatementBoolCheck(SymbolTable<?> symbolTable, IfStatement ifStatement) {
       LOG.warning(() -> evalExpression(symbolTable, ifStatement.expr()).toString());
-      areCompatibleTypes(Bool.class, evalExpression(symbolTable, ifStatement.expr()));
+      Types.areCompatibleTypes(Bool.class, evalExpression(symbolTable, ifStatement.expr()));
       visitAndCheck(symbolTable, ifStatement.statement());
       visitAndCheck(symbolTable, ifStatement.elseStatement());
    }
 
    private static void whileLoopBoolCheck(SymbolTable<?> symbolTable, WhileLoop whileLoop) {
-      areCompatibleTypes(Bool.class, evalExpression(symbolTable, whileLoop.expr()));
+      Types.areCompatibleTypes(Bool.class, evalExpression(symbolTable, whileLoop.expr()));
       visitAndCheck(symbolTable, whileLoop.statement());
    }
 
    private static void assignStatementCheck(SymbolTable<?> symbolTable, AssignStatement assignStatement) {
 
-   }
-
-   /**
-    * Check if two given {@link Type}s are compatible
-    * @return {@link Type} if they are equal
-    * @throws {@link IllegalStateException} if the types are not equal
-    */
-   protected static Type areCompatibleTypes(Type type, Type otherType) {
-       if (! hasCompatibleTypes(type, otherType)) {
-          throw new IllegalStateException("Types are not compatible: " + type + ", " + otherType);
-       }
-       return type;
-   }
-
-   protected static Type areCompatibleTypes(Class<? extends Type> type, Type otherType) {
-      if (! hasCompatibleTypes(type, otherType)) {
-         throw new IllegalStateException("Types are not compatible: " + type.getName() + ", " + otherType);
-      }
-      return otherType;
-   }
-
-   private static boolean hasCompatibleTypes(Type type, Type otherType) {
-      return type.getClass().equals(otherType.getClass());
-   }
-
-   private static boolean hasCompatibleTypes(Class<? extends Type> type, Type otherType) {
-      return type.equals(otherType.getClass());
-   }
-
-   protected static Type areCompatibleTypes(Class<? extends Type> type, Type ... otherTypes) {
-      for (Type otherType : otherTypes) {
-         if (! type.equals(otherType.getClass())) {
-            throw new IllegalStateException("Types are not compatible: " + type + ", " + otherType);
-         }
-      }
-      return otherTypes[0];
    }
 
    private static Int evalExprNumber(SymbolTable<?> symbolTable, ExprNumber exprNumber) {

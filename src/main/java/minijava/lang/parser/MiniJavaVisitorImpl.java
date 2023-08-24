@@ -114,7 +114,7 @@ public class MiniJavaVisitorImpl extends MiniJavaBaseVisitor<ASTNode> {
       Type              methodType   = (Type) visit(ctx.type().get(0));
       Identifier        methodName   = new Identifier(ctx.Identifier().get(0).getText());
       List<MethodParam> methodParams = new ArrayList<>();
-      for (int index = 1; index < ctx.Identifier().size(); index ++ ) {
+      for (int index = 1; index < ctx.Identifier().size(); index ++) {
          methodParams.add(new MethodParam(
             (Type) visit(ctx.type(index)),
             new Identifier(ctx.Identifier().get(index).getText())

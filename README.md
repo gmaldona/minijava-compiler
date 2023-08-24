@@ -6,7 +6,6 @@ The grammar used in this project comes from the grammar found on <a href="http:/
 
 ## Building The minijava.lang.MiniJava Compiler
 
----
 ### Build by Installing Python Tool Chain
 - The Antlr 4 Tools can be installed using python pip install. The following PyPi packages include the necessary tools to
 compile a *.g4 file and generate the required Java classes:
