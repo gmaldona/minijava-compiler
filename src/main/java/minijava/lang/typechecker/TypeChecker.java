@@ -63,7 +63,7 @@ public class TypeChecker {
          case StatementBlock    statementBlock -> statementBlockCheck(symbolTable, statementBlock);
          case AssignStatement  assignStatement -> assignStatementCheck(symbolTable, assignStatement);
          case ArrayAssignStatement arrayAssign -> arrayAssignStatementCheck(symbolTable, arrayAssign);
-         case default -> throw new IllegalStateException("Unknown state for: " + ast);
+         default                               -> throw new IllegalStateException("Unknown state for: " + ast);
       }
    }
 
@@ -77,7 +77,7 @@ public class TypeChecker {
          case NewClassDecl       newClassDecl -> evalNewClassDecl(symbolTable, newClassDecl);
          case ExprParenthesis exprParenthesis -> evalExprParenthesis(symbolTable, exprParenthesis);
          case NewIntArrayDecl newIntArrayDecl -> evalNewIntArrayDecl(symbolTable, newIntArrayDecl);
-         default -> throw new IllegalStateException("Unexpected value: " + expression);
+         default                              -> throw new IllegalStateException("Unexpected value: " + expression);
       };
    }
 
@@ -87,7 +87,7 @@ public class TypeChecker {
          case Operation         operation -> evalOperation(symbolTable, expr, operation);
          case ArrayLength     arrayLength -> evalArrayLength(symbolTable, expr, arrayLength);
          case ExprClassMember classMember -> evalExprClassMember(symbolTable, expr, classMember);
-         default -> throw new IllegalStateException("Unexpected value: " + expression2);
+         default                          -> throw new IllegalStateException("Unexpected value: " + expression2);
       };
    }
 

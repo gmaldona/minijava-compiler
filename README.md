@@ -4,7 +4,14 @@ MiniJava is a subset of the Java language
 A few examples of the MiniJava language can be found <a href="https://www.cambridge.org/resources/052182060X/">here</a>. <br>
 The grammar used in this project comes from the grammar found on <a href="http://www.cs.tufts.edu/~sguyer/classes/comp181-2006/minijava.html">here</a>. <br>
 
-## Building The minijava.lang.MiniJava Compiler
+## Requirements for the MiniJava Compiler
+- Java 20 ([Oracle.com](https://www.oracle.com/java/technologies/javase/jdk20-archive-downloads.html))
+- Compiling MiniJava Grammar using Python3:
+  - Python3 ([Python.org](https://www.python.org/downloads/))
+- Compiling MiniJava Grammar using Docker:
+  - Docker ([Docker.com](https://www.docker.com))
+
+## Building The MiniJava Compiler
 
 ### Build by Installing Python Tool Chain
 - The Antlr 4 Tools can be installed using python pip install. The following PyPi packages include the necessary tools to

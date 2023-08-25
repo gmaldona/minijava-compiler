@@ -123,7 +123,7 @@ public class SymbolTable<S extends Scope> {
       return switch (scope) {
          case ClassDecl classDecl   -> classDecl.className().toString();
          case MethodDecl methodDecl -> methodDecl.methodName().toString();
-         case default               -> scope.getClass().getSimpleName();
+         default                    -> scope.getClass().getSimpleName();
       };
    }
 

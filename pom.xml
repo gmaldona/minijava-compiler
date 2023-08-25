@@ -28,10 +28,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
-                    <compilerArgs>
-                        <arg>--enable-preview</arg>
+                    <source>20</source>
+                    <target>20</target>
+                    <compilerArgs>--enable-preview
                     </compilerArgs>
                 </configuration>
             </plugin>
