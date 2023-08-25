@@ -90,4 +90,20 @@ public class TestMiniJavac {
          .compile(MiniJavaExamples());
    }
 
+   @Test
+   public void circularDependencies() {
+      String program = """
+            class Main {
+               public static void main(String[] a) { System.out.println(new ClassA().start()); }
+            }
+            
+            class A extends class B { }
+            
+            class B extends class A { } 
+         """;
+
+      MiniJavac.getInstance()
+         .compile(program);
+   }
+
 }

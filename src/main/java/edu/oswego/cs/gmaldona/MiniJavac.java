@@ -100,6 +100,19 @@ public class MiniJavac implements MiniJava {
       }
    }
 
+   protected void compile(String input) {
+      ProgramContext         parseTree = Parser.parse(input);
+      MiniJavaVisitor<ASTNode> visitor = new MiniJavaVisitorImpl();
+      ASTNode                      ast = visitor.visit(parseTree);
+
+      SymbolTable<?> symbolTable = new SymbolTableFactory(ast)
+         .newTable()
+         .populate()
+         .build();
+
+      TypeChecker.visitAndCheck(symbolTable, ast);
+   }
+
    protected void compile(List<Path> paths) {
       Stream<InputStream> inputStreams = paths.stream()
          .filter(Files::exists)
