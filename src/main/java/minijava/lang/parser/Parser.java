@@ -19,4 +19,13 @@ public class Parser {
       return parser.program();
    }
 
+   public static MiniJavaParser.ProgramContext parse(String input) {
+      CharStream        charStream      = CharStreams.fromString(input);
+      MiniJavaLexer     lexer           = new MiniJavaLexer(charStream);
+      CommonTokenStream tokenStream     = new CommonTokenStream(lexer);
+      MiniJavaParser    parser          = new MiniJavaParser(tokenStream);
+
+      return parser.program();
+   }
+
 }
