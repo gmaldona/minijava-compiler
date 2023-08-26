@@ -20,6 +20,7 @@ import minijava.lang.parser.MiniJavaVisitorImpl;
 import minijava.lang.parser.Parser;
 import minijava.lang.parser.SymbolTable;
 import minijava.lang.parser.SymbolTableFactory;
+import minijava.lang.typechecker.SyntacticChecker;
 import minijava.lang.typechecker.TypeChecker;
 
 public class MiniJavac implements MiniJava {
@@ -84,6 +85,7 @@ public class MiniJavac implements MiniJava {
             .build();
 
          TypeChecker.visitAndCheck(symbolTable, ast);
+         SyntacticChecker.circularDependencyChecker(symbolTable);
 
       } catch (IOException e) {
          LOG.warning(() -> "Could not load input stream.");
@@ -111,6 +113,7 @@ public class MiniJavac implements MiniJava {
          .build();
 
       TypeChecker.visitAndCheck(symbolTable, ast);
+      SyntacticChecker.circularDependencyChecker(symbolTable);
    }
 
    protected void compile(List<Path> paths) {
