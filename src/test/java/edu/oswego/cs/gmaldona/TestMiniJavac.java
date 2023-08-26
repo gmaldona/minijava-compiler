@@ -10,12 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+
+import minijava.lang.MiniJava;
+import minijava.lang.parser.AST;
+import minijava.lang.parser.SymbolTable;
+import minijava.lang.typechecker.SyntacticChecker;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import static org.junit.Assert.assertEquals;
 
 public class TestMiniJavac {
+
+   @Rule
+   public final ExpectedException exception = ExpectedException.none();
 
    private static final Logger LOG = Logger.getLogger(TestMiniJavac.class.getName());
 
@@ -80,6 +90,7 @@ public class TestMiniJavac {
    public void singleCoreMiniJavaExamples() {
       MiniJavac.getInstance()
          .compile(MiniJavaExamples());
+
    }
 
    @Test
@@ -90,20 +101,69 @@ public class TestMiniJavac {
          .compile(MiniJavaExamples());
    }
 
+   /**
+    * test for {@link minijava.lang.typechecker.SyntacticChecker#circularDependencyChecker(SymbolTable)}
+    */
    @Test
    public void circularDependencies() {
+      exception.expect(IllegalStateException.class);
+
       String program = """
             class Main {
-               public static void main(String[] a) { System.out.println(new ClassA().start()); }
+               public static void main(String[] a) { System.out.println(new A().start()); }
             }
             
-            class A extends class B { }
+            class A extends B { }
             
-            class B extends class A { } 
+            class B extends A { } 
          """;
 
-      MiniJavac.getInstance()
-         .compile(program);
+      SymbolTable<?> symbolTable = TestMiniJavacV1.extractSymbolTable(program);
+      SyntacticChecker.circularDependencyChecker(symbolTable);
+
+      program = """
+            class Main {
+               public static void main(String[] a) { System.out.println(new A().start()); }
+            }
+            
+            class A extends B { }
+            
+            class B extends C { }
+            
+            class C extends A { }
+         """;
+
+      symbolTable = TestMiniJavacV1.extractSymbolTable(program);
+      SyntacticChecker.circularDependencyChecker(symbolTable);
+   }
+
+   /**
+    * test for {@link minijava.lang.typechecker.SyntacticChecker#recursiveSuperClass(List, SymbolTable, AST.Scope)}
+    */
+   @Test
+   public void recursiveSuperClass() {
+      String program = """
+            class Main {
+               public static void main(String[] a) { System.out.println(new A().start()); }
+            }
+            
+            class A extends B { }
+            
+            class B extends C { }
+            
+            class C extends A { }
+         """;
+      SymbolTable<?> symbolTable = TestMiniJavacV1.extractSymbolTable(program);
+      List<AST.Scope> classDecls = symbolTable.getRoot()
+              .childTableStream(AST.ClassDecl.class)
+              .map(SymbolTable::scope)
+              .filter(scope -> scope instanceof AST.ClassDecl)
+              .toList();
+      List<List<String>> superClassChain = classDecls.parallelStream()
+              .map(classDecl -> SyntacticChecker.recursiveSuperClass(new ArrayList<>(), symbolTable.getRoot(), classDecl))
+              .toList();
+
+      assertEquals(3, superClassChain.size());
    }
 
 }
